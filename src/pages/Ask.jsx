@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { suggestedQuestions, demoResponses } from '../data/storyChapters';
 import { streamChat } from '../api/anthropic';
+import { logEvent } from '../firebase';
 import ChatMessage from '../components/ChatMessage';
 
 export default function Ask() {
@@ -66,6 +67,7 @@ export default function Ask() {
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput('');
+    logEvent('chat_message_sent', { mode: isDemoMode ? 'demo' : 'live', language });
 
     if (isDemoMode || !apiKey) {
       // Demo mode — simulate streaming
@@ -151,6 +153,7 @@ export default function Ask() {
                   setShowApiKeyInput(true);
                 } else {
                   setIsDemoMode(!isDemoMode);
+                  logEvent('demo_mode_toggled', { new_mode: isDemoMode ? 'live' : 'demo' });
                 }
               }}
             >

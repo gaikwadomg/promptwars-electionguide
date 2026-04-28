@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { translations } from '../data/translations';
+import { logEvent } from '../firebase';
 
 const AppContext = createContext();
 
@@ -37,8 +38,8 @@ function loadApiKey() {
 }
 
 export function AppProvider({ children }) {
-  const [language, setLanguage] = useState('en');
-  const [selectedState, setSelectedState] = useState('maharashtra');
+  const [language, setLanguageState] = useState('en');
+  const [selectedState, setSelectedStateState] = useState('maharashtra');
   const [gameProgress, setGameProgress] = useState(loadProgress);
   const [apiKey, setApiKeyState] = useState(loadApiKey);
   const [showBadgePopup, setShowBadgePopup] = useState(null);
@@ -67,6 +68,16 @@ export function AppProvider({ children }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(gameProgress));
   }, [gameProgress]);
 
+  const setLanguage = (lang) => {
+    setLanguageState(lang);
+    logEvent('language_changed', { language: lang });
+  };
+
+  const setSelectedState = (state) => {
+    setSelectedStateState(state);
+    logEvent('state_selected', { state });
+  };
+
   const setApiKey = (key) => {
     setApiKeyState(key);
     localStorage.setItem(API_KEY_STORAGE, key);
@@ -78,6 +89,7 @@ export function AppProvider({ children }) {
 
   const addXP = (amount) => {
     setGameProgress(prev => ({ ...prev, xp: prev.xp + amount }));
+    logEvent('xp_gained', { amount });
   };
 
   const completeChapter = (chapterId) => {
@@ -89,6 +101,7 @@ export function AppProvider({ children }) {
         xp: prev.xp + 20,
       };
     });
+    logEvent('chapter_completed', { chapter_id: chapterId });
   };
 
   const earnBadge = (badge) => {
@@ -100,6 +113,7 @@ export function AppProvider({ children }) {
       };
     });
     setShowBadgePopup(badge);
+    logEvent('badge_earned', { badge_id: badge.id, badge_name: badge.name?.en || badge.id });
   };
 
   const saveQuizScore = (chapterId, score) => {
@@ -107,6 +121,7 @@ export function AppProvider({ children }) {
       ...prev,
       quizScores: { ...prev.quizScores, [chapterId]: score },
     }));
+    logEvent('quiz_completed', { chapter_id: chapterId, score });
   };
 
   const getLevel = () => {
