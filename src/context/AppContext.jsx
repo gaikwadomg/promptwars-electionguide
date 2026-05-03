@@ -47,6 +47,7 @@ export function AppProvider({ children }) {
   // Update streak on load
   useEffect(() => {
     const today = new Date().toDateString();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setGameProgress(prev => {
       const lastVisit = prev.lastVisit;
       if (lastVisit === today) return prev;

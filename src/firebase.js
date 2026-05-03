@@ -1,5 +1,8 @@
 import { initializeApp } from 'firebase/app';
 import { getAnalytics, logEvent as firebaseLogEvent, isSupported } from 'firebase/analytics';
+import { getAuth } from 'firebase/auth';
+import { getStorage } from 'firebase/storage';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -13,11 +16,18 @@ const firebaseConfig = {
 
 let app = null;
 let analytics = null;
+let auth = null;
+let storage = null;
+let db = null;
 
 // Initialize Firebase only if config is provided
 if (firebaseConfig.apiKey && firebaseConfig.projectId) {
   try {
     app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    storage = getStorage(app);
+    db = getFirestore(app);
+    
     // Analytics requires browser support — check before initializing
     isSupported().then((supported) => {
       if (supported) {
@@ -45,5 +55,5 @@ export function logEvent(eventName, params = {}) {
   }
 }
 
-export { app, analytics };
+export { app, analytics, auth, storage, db };
 export default app;

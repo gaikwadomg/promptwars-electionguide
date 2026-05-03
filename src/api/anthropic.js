@@ -9,32 +9,21 @@ const SYSTEM_PROMPT = `You are Matdata Mitra, a friendly and knowledgeable India
 Always respond in simple, warm language. When asked in Hindi, respond in Hindi. Keep answers under 150 words. End each answer with one actionable next step. Never give partisan political opinions.`;
 
 export async function streamChat(messages, apiKey, onChunk, onDone, onError) {
-  if (!apiKey) {
-    onError('No API key provided');
-    return;
-  }
-
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: SYSTEM_PROMPT,
+        systemPrompt: SYSTEM_PROMPT,
         messages: messages,
-        stream: true,
       }),
     });
 
     if (!response.ok) {
-      const err = await response.text();
-      onError(`API Error: ${response.status} — ${err}`);
+      const err = await response.json().catch(() => ({ error: response.statusText }));
+      onError(`API Error: ${response.status} — ${err.error || err}`);
       return;
     }
 

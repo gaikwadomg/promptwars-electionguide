@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { AppProvider } from './context/AppContext';
-import { logEvent } from './firebase';
+import { logEvent, auth } from './firebase';
+import { signInAnonymously } from 'firebase/auth';
 import BottomNav from './components/BottomNav';
 import BilingualToggle from './components/BilingualToggle';
 import BadgePopup from './components/BadgePopup';
@@ -35,6 +36,14 @@ function AnalyticsTracker() {
 }
 
 export default function App() {
+  useEffect(() => {
+    if (auth) {
+      signInAnonymously(auth).catch((error) => {
+        console.warn('Anonymous auth failed:', error);
+      });
+    }
+  }, []);
+
   return (
     <BrowserRouter>
       <AppProvider>
