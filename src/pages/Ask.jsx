@@ -6,13 +6,11 @@ import { logEvent } from '../firebase';
 import ChatMessage from '../components/ChatMessage';
 
 export default function Ask() {
-  const { language, t, apiKey, setApiKey } = useApp();
+  const { language, t } = useApp();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
-  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
-  const [tempApiKey, setTempApiKey] = useState('');
-  const [isDemoMode, setIsDemoMode] = useState(!apiKey);
+  const [isDemoMode, setIsDemoMode] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -69,7 +67,7 @@ export default function Ask() {
     setInput('');
     logEvent('chat_message_sent', { mode: isDemoMode ? 'demo' : 'live', language });
 
-    if (isDemoMode || !apiKey) {
+    if (isDemoMode) {
       // Demo mode — simulate streaming
       setIsStreaming(true);
       const response = findDemoResponse(text);
@@ -95,7 +93,7 @@ export default function Ask() {
 
       await streamChat(
         apiMessages,
-        apiKey,
+        null,
         (text) => {
           setMessages([...newMessages, { role: 'assistant', content: text, isStreaming: true }]);
         },
@@ -122,14 +120,7 @@ export default function Ask() {
     }
   };
 
-  const handleSaveApiKey = () => {
-    if (tempApiKey.trim()) {
-      setApiKey(tempApiKey.trim());
-      setIsDemoMode(false);
-      setShowApiKeyInput(false);
-      setTempApiKey('');
-    }
-  };
+
 
   return (
     <div className="page ask-page">
@@ -149,43 +140,14 @@ export default function Ask() {
             <button
               className={`mode-switch-btn ${isDemoMode ? '' : 'active'}`}
               onClick={() => {
-                if (!apiKey) {
-                  setShowApiKeyInput(true);
-                } else {
-                  setIsDemoMode(!isDemoMode);
-                  logEvent('demo_mode_toggled', { new_mode: isDemoMode ? 'live' : 'demo' });
-                }
+                setIsDemoMode(!isDemoMode);
+                logEvent('demo_mode_toggled', { new_mode: isDemoMode ? 'live' : 'demo' });
               }}
             >
-              {isDemoMode ? '🔑 API' : '📦 Demo'}
+              {isDemoMode ? 'Live AI' : 'Demo'}
             </button>
           </div>
         </div>
-
-        {/* API Key Input */}
-        {showApiKeyInput && (
-          <div className="api-key-panel">
-            <p>{t('enterApiKey')}</p>
-            <div className="api-key-input-group">
-              <input
-                type="password"
-                value={tempApiKey}
-                onChange={e => setTempApiKey(e.target.value)}
-                placeholder={t('apiKeyPlaceholder')}
-                className="api-key-input"
-              />
-              <button onClick={handleSaveApiKey} className="api-key-save">
-                ✓
-              </button>
-            </div>
-            <button 
-              className="api-key-cancel"
-              onClick={() => setShowApiKeyInput(false)}
-            >
-              {t('close')}
-            </button>
-          </div>
-        )}
 
         {/* Messages */}
         <div className="chat-messages">
